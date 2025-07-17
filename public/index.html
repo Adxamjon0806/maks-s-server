@@ -26,8 +26,7 @@
   <body>
     <h1>Полученные скриншоты</h1>
     <div id="screenshots"></div>
-
-    <script>
+    <script type="module">
       const ws = new WebSocket("wss://" + location.host);
 
       ws.onmessage = function (event) {

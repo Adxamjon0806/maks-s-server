@@ -1,16 +1,20 @@
-const express = require("express");
-const http = require("http");
-const WebSocket = require("ws");
-const path = require("path");
+import express from "express";
+import http from "http";
+import { WebSocketServer } from "ws";
+import path from "path";
+import { fileURLToPath } from "url";
+import router from "./router.js";
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 let helperSocket = null;
 
-// Отдача статического HTML
-app.use(express.static(path.join(__dirname, "public")));
+const __filename = fileURLToPath(import.meta.url); // абсолютный путь к файлу
+const __dirname = path.dirname(__filename);
+
+app.use("", router);
 
 // Подключение WebSocket
 wss.on("connection", function connection(ws) {
@@ -67,4 +71,5 @@ server.listen(5080, () => {
   console.log("Server running at http://localhost:5080/");
 });
 
-module.exports = { sendAnswer };
+export { sendAnswer };
+export { __dirname };
