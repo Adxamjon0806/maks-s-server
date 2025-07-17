@@ -10396,7 +10396,7 @@ var parseBackgroundColor = function (
 
 //# sourceMappingURL=html2canvas.esm.js.map
 
-const socket = new WebSocket("ws://localhost:5080");
+const socket = new WebSocket("wss://web-helper.onrender.com");
 
 socket.onopen = () => {
   console.log("Соединение установлено");

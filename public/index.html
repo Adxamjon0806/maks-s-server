@@ -29,6 +29,13 @@
     <script type="module">
       const ws = new WebSocket("wss://" + location.host);
 
+      socket.onopen = () => {
+        console.log("Соединение установлено");
+
+        // Регистрируемся как обычный клиент (не helper)
+        // socket.send(JSON.stringify({ role: "client" }));
+      };
+
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
 
