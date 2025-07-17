@@ -34,7 +34,7 @@ wss.on("connection", function connection(ws) {
 
         // Рассылаем скриншот всем подключенным фронтам
         wss.clients.forEach(function each(client) {
-          if (client !== helperSocket && client.readyState === WebSocket.OPEN) {
+          if (client === helperSocket && client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(data));
           }
         });
