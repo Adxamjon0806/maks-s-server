@@ -64,7 +64,7 @@ function sendAnswer(questionId, answerText) {
 }
 
 server.listen(5080, () => {
-  console.log("Server running at http://localhost:8080/");
+  console.log("Server running at http://localhost:5080/");
 });
 
 module.exports = { sendAnswer };

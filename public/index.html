@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ответчик</title>
+    <style>
+      body {
+        font-family: Arial;
+        background: #f0f0f0;
+        margin: 0;
+        padding: 20px;
+      }
+      img {
+        max-width: 300px;
+        display: block;
+        margin-bottom: 10px;
+      }
+      .entry {
+        background: #fff;
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Полученные скриншоты</h1>
+    <div id="screenshots"></div>
+
+    <script>
+      const ws = new WebSocket("wss://" + location.host);
+
+      ws.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "screenshot") {
+          const container = document.getElementById("screenshots");
+
+          const entry = document.createElement("div");
+          entry.className = "entry";
+
+          const img = document.createElement("img");
+          img.src = data.screenshot;
+          entry.appendChild(img);
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "Введите ответ...";
+          entry.appendChild(input);
+
+          const button = document.createElement("button");
+          button.textContent = "Отправить ответ";
+          button.onclick = function () {
+            ws.send(
+              JSON.stringify({
+                type: "answer",
+                questionId: data.questionId,
+                answer: input.value,
+              })
+            );
+            button.disabled = true;
+            button.textContent = "Ответ отправлен";
+          };
+          entry.appendChild(button);
+
+          container.prepend(entry);
+        }
+      };
+    </script>
+  </body>
+</html>
