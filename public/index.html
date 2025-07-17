@@ -31,13 +31,12 @@
 
       ws.onopen = () => {
         console.log("Соединение установлено");
-
-        // Регистрируемся как обычный клиент (не helper)
-        // socket.send(JSON.stringify({ role: "client" }));
+        socket.send(JSON.stringify({ role: "helper" }));
       };
 
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
+        console.log(data);
 
         if (data.type === "screenshot") {
           const container = document.getElementById("screenshots");
