@@ -4,6 +4,7 @@ import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
 import router from "./router.js";
+import cors from "cors";
 
 const app = express();
 const server = http.createServer(app);
@@ -14,6 +15,7 @@ let helperSocket = null;
 const __filename = fileURLToPath(import.meta.url); // абсолютный путь к файлу
 const __dirname = path.dirname(__filename);
 
+app.use(cors());
 app.use("", router);
 
 // Подключение WebSocket
