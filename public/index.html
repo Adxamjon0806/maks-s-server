@@ -31,7 +31,7 @@
 
       ws.onopen = () => {
         console.log("Соединение установлено");
-        socket.send(JSON.stringify({ role: "helper" }));
+        ws.send(JSON.stringify({ role: "helper" }));
       };
 
       ws.onmessage = function (event) {
