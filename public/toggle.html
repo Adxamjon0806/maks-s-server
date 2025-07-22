@@ -191,7 +191,7 @@
       let isOn = false;
 
       async function getTheAccess() {
-        fetch(`http://${location.host}/access`)
+        fetch(`https://${location.host}/access`)
           .then((res) => res.json())
           .then((data) => {
             isOn = data.isOpenScript;
@@ -249,7 +249,7 @@
           ? `<p>Система активна</p><p style="color: #ccc; font-size: 14px; margin-top: 8px;">Все функции работают в штатном режиме</p>`
           : `<p>Система неактивна</p><p style="color: #ccc; font-size: 14px; margin-top: 8px;">Ожидание активации пользователем</p>`;
 
-        fetch(`http://${location.host}/change-access`, {
+        fetch(`https://${location.host}/change-access`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ isOn }),
