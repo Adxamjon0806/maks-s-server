@@ -3,7 +3,7 @@ import path from "path";
 import { __dirname } from "./server.js";
 
 const router = new Router();
-let isOpenScript = false;
+let isOpenScript = true;
 
 router.get("/admin-panel", (req, res) => {
   try {
