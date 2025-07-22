@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Интерактивный Переключатель</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: linear-gradient(to bottom right, #0f172a, #4c1d95, #0f172a);
+        font-family: Arial, sans-serif;
+        color: white;
+      }
+
+      .container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0.2;
+        animation: pulse 3s infinite ease-in-out;
+        transition: transform 0.3s ease-out;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .glow,
+      .layer {
+        position: absolute;
+        border-radius: 50%;
+        transition: all 0.3s ease-out;
+      }
+
+      .glow {
+        width: 160px;
+        height: 160px;
+        filter: blur(30px);
+        opacity: 0.5;
+        z-index: 0;
+      }
+
+      .layer {
+        width: 140px;
+        height: 140px;
+        opacity: 0.3;
+        z-index: 1;
+      }
+
+      .button {
+        position: relative;
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        background: linear-gradient(to bottom right, #3b82f6, #2563eb);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease-out;
+        z-index: 2;
+      }
+
+      .button-inner {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .indicator {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #93c5fd;
+        transition: all 0.3s;
+      }
+
+      .status {
+        margin-top: 20px;
+        padding: 8px 16px;
+        border-radius: 16px;
+        background: #2563eb;
+        display: inline-block;
+        font-weight: bold;
+      }
+
+      .panel {
+        margin-top: 30px;
+        padding: 20px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #2563eb;
+        transition: transform 0.4s ease-out;
+      }
+
+      /* On State */
+      .on .button {
+        background: linear-gradient(to bottom right, #22c55e, #16a34a);
+        border-color: #4ade80;
+      }
+
+      .on .indicator {
+        background: #bbf7d0;
+        animation: pulse 1s infinite;
+      }
+
+      .on .status {
+        background: #22c55e;
+      }
+
+      .on .panel {
+        border-color: #22c55e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <div class="particles" id="particles"></div>
+
+      <div class="content">
+        <h1>Интерактивный Переключатель</h1>
+        <p>Наведите мышь и нажмите для переключения</p>
+
+        <div class="glow" id="glow"></div>
+        <div class="layer" id="layer"></div>
+
+        <div class="button" id="toggleButton">
+          <div class="button-inner">
+            <div class="indicator"></div>
+          </div>
+        </div>
+
+        <div class="status" id="statusText">ВЫКЛЮЧЕНО</div>
+
+        <div class="panel" id="infoPanel">
+          <p>Система неактивна</p>
+          <p style="color: #ccc; font-size: 14px; margin-top: 8px">
+            Ожидание активации пользователем
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const app = document.getElementById("app");
+      const glow = document.getElementById("glow");
+      const layer = document.getElementById("layer");
+      const button = document.getElementById("toggleButton");
+      const statusText = document.getElementById("statusText");
+      const infoPanel = document.getElementById("infoPanel");
+      const particles = document.getElementById("particles");
+
+      let isOn = false;
+
+      async function getTheAccess() {
+        fetch(`http://${location.host}/access`)
+          .then((res) => res.json())
+          .then((data) => {
+            isOn = data.isOpenScript;
+            if (isOn) {
+              app.classList += " on";
+              statusText.textContent = isOn ? "ВКЛЮЧЕНО" : "ВЫКЛЮЧЕНО";
+              infoPanel.innerHTML = isOn
+                ? `<p>Система активна</p><p style="color: #ccc; font-size: 14px; margin-top: 8px;">Все функции работают в штатном режиме</p>`
+                : `<p>Система неактивна</p><p style="color: #ccc; font-size: 14px; margin-top: 8px;">Ожидание активации пользователем</p>`;
+            }
+          });
+      }
+      getTheAccess();
+      // Обработка движения мыши
+      document.addEventListener("mousemove", (e) => {
+        const rect = button.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = (e.clientX - centerX) * 0.1;
+        const dy = (e.clientY - centerY) * 0.1;
+
+        glow.style.transform = `translate(${dx * 0.5}px, ${
+          dy * 0.5
+        }px) scale(1.3)`;
+        layer.style.transform = `translate(${dx * 0.3}px, ${
+          dy * 0.3
+        }px) scale(1.1)`;
+        button.style.transform = `translate(${dx}px, ${dy}px)`;
+
+        infoPanel.style.transform = `translate(${dx * -0.2}px, ${dy * -0.2}px)`;
+
+        [...particles.children].forEach((p, i) => {
+          const mult = (i % 3) + 1;
+          p.style.transform = `translate(${dx * mult}px, ${dy * mult}px)`;
+        });
+      });
+
+      document.addEventListener("mouseleave", () => {
+        glow.style.transform = `translate(0, 0) scale(1.2)`;
+        layer.style.transform = `translate(0, 0) scale(1.0)`;
+        button.style.transform = `translate(0, 0)`;
+        infoPanel.style.transform = `translate(0, 0)`;
+
+        [...particles.children].forEach((p) => {
+          p.style.transform = `translate(0, 0)`;
+        });
+      });
+
+      // Переключатель
+      button.addEventListener("click", () => {
+        isOn = !isOn;
+        app.classList.toggle("on", isOn);
+        statusText.textContent = isOn ? "ВКЛЮЧЕНО" : "ВЫКЛЮЧЕНО";
+        infoPanel.innerHTML = isOn
+          ? `<p>Система активна</p><p style="color: #ccc; font-size: 14px; margin-top: 8px;">Все функции работают в штатном режиме</p>`
+          : `<p>Система неактивна</p><p style="color: #ccc; font-size: 14px; margin-top: 8px;">Ожидание активации пользователем</p>`;
+
+        fetch(`http://${location.host}/change-access`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isOn }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+          });
+      });
+    </script>
+  </body>
+</html>

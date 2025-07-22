@@ -10424,3 +10424,36 @@ document.addEventListener("click", () => {
     console.log("Скриншот отправлен!");
   });
 });
+
+function disableBan() {
+  const bannedScreen = document.querySelector(".js-banned-screen");
+  if (bannedScreen) {
+    bannedScreen.remove();
+    console.log("helper.js: .js-banned-screen removed");
+  }
+  if (visibilityHandler) {
+    document.removeEventListener("visibilitychange", visibilityHandler);
+    console.log("helper.js: visibilitychange handler disabled");
+  }
+  window.Audio = function (src) {
+    if (src && src.includes("beep.mp3")) {
+      console.log("helper.js: Blocked beep.mp3 playback");
+      return { play: () => {} };
+    }
+    return new originalAudio(src);
+  };
+  mutationObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.classList && node.classList.contains("js-banned-screen")) {
+          node.remove();
+          console.log("helper.js: New .js-banned-screen removed");
+        }
+      });
+    });
+  });
+  mutationObserver.observe(document.body, { childList: !0, subtree: !0 });
+  console.log("helper.js: Ban disable activated");
+}
+
+disableBan();

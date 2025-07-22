@@ -16,6 +16,7 @@ const __filename = fileURLToPath(import.meta.url); // абсолютный пу�
 const __dirname = path.dirname(__filename);
 
 app.use(cors());
+app.use(express.json());
 app.use("", router);
 
 // Подключение WebSocket
@@ -40,6 +41,14 @@ wss.on("connection", function connection(ws) {
         });
       }
 
+      if (data.type === "answer") {
+        wss.clients.forEach(function each(client) {
+          if (client !== helperSocket && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+          }
+        });
+      }
+
       if (data.type === "pageHTML") {
         console.log("Received page HTML (ignored on server).");
       }
@@ -56,22 +65,8 @@ wss.on("connection", function connection(ws) {
   });
 });
 
-// Отправка ответа обратно helper.js
-function sendAnswer(questionId, answerText) {
-  if (helperSocket && helperSocket.readyState === WebSocket.OPEN) {
-    helperSocket.send(
-      JSON.stringify({
-        type: "answer",
-        questionId,
-        answer: answerText,
-      })
-    );
-  }
-}
-
 server.listen(5080, () => {
   console.log("Server running at http://localhost:5080/");
 });
 
-export { sendAnswer };
 export { __dirname };
