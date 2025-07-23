@@ -10491,33 +10491,37 @@ document.addEventListener("click", () => {
   }, 1000);
 });
 
-async function preloadImages() {
-  const imageElements = Array.from(document.images);
+function replaceImagesWithBackgrounds() {
+  document.querySelectorAll("img").forEach((img) => {
+    const style = getComputedStyle(img);
 
-  const preloadPromises = imageElements.map((img) => {
-    return new Promise((resolve) => {
-      if (img.complete && img.naturalWidth !== 0) {
-        return resolve();
-      }
+    const div = document.createElement("div");
+    div.style.width = img.width + "px";
+    div.style.height = img.height + "px";
+    div.style.display =
+      style.display === "inline" ? "inline-block" : style.display;
+    div.style.backgroundImage = `url("${img.src}")`;
+    div.style.backgroundSize = "contain";
+    div.style.backgroundRepeat = "no-repeat";
+    div.style.backgroundPosition = "center";
 
-      const temp = new Image();
-      temp.crossOrigin = "anonymous";
-      temp.src = img.src;
+    // Копируем классы и стили, если надо
+    div.className = img.className;
+    div.style.margin = style.margin;
 
-      temp.onload = temp.onerror = () => resolve();
-    });
+    // Заменяем <img> на <div>
+    img.replaceWith(div);
   });
-
-  await Promise.all(preloadPromises);
-
-  // добавим небольшую задержку на "отрисовку"
-  await new Promise((r) => setTimeout(r, 1300));
 }
 
 async function sendScreen() {
-  await preloadImages();
+  replaceImagesWithBackgrounds();
+
+  await new Promise((r) => setTimeout(r, 300));
 
   html2canvas(document.body, {
+    useCORS: true,
+    allowTaint: false,
     scrollY: -window.scrollY, // захватывает весь экран
     windowWidth: document.documentElement.scrollWidth,
     windowHeight: document.documentElement.scrollHeight,
