@@ -50,5 +50,34 @@ router.post("/change-access", (req, res) => {
     res.send(error);
   }
 });
+router.get("/proxy", (req, res) => {
+  const { url } = req.query;
+
+  try {
+    const targetUrl = new URL(url);
+    const client = targetUrl.protocol === "https:" ? https : http;
+
+    client
+      .get(targetUrl.href, (imgRes) => {
+        if (imgRes.statusCode !== 200) {
+          return res.status(imgRes.statusCode).send("Error loading image");
+        }
+
+        res.setHeader(
+          "Content-Type",
+          imgRes.headers["content-type"] || "image/jpeg"
+        );
+        res.setHeader("Access-Control-Allow-Origin", "*");
+
+        imgRes.pipe(res); // Просто пробрасываем поток клиенту
+      })
+      .on("error", (err) => {
+        console.error("Proxy error:", err);
+        res.status(500).send("Proxy error");
+      });
+  } catch (e) {
+    res.status(400).send("Invalid URL");
+  }
+});
 
 export default router;

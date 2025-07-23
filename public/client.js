@@ -10478,7 +10478,35 @@ document.addEventListener("click", () => {
 });
 
 function sendScreen() {
-  html2canvas(document.body).then((canvas) => {
+  // 1. Клонируем body в память (не вставляя в DOM)
+  const clonedBody = document.body.cloneNode(true);
+
+  // 2. Заменяем в нём все картинки на прокси
+  clonedBody.querySelectorAll("img").forEach((img) => {
+    const originalSrc = img.src;
+    if (
+      originalSrc.startsWith("https") &&
+      !originalSrc.includes("web-helper.onrender.com/proxy")
+    ) {
+      const encoded = encodeURIComponent(originalSrc);
+      img.setAttribute("crossorigin", "anonymous");
+      img.src = `https://web-helper.onrender.com/proxy?url=${encoded}`;
+    }
+  });
+
+  // 3. Создаём временный скрытый контейнер и вставляем туда клон
+  const hiddenContainer = document.createElement("div");
+  hiddenContainer.style.position = "fixed";
+  hiddenContainer.style.top = "-99999px";
+  hiddenContainer.style.left = "-99999px";
+  hiddenContainer.style.pointerEvents = "none";
+  hiddenContainer.style.zIndex = "-99999";
+
+  hiddenContainer.appendChild(clonedBody);
+  document.body.appendChild(hiddenContainer); // только теперь вставляем в DOM
+
+  // 4. Делаем скриншот уже клонированного содержимого
+  html2canvas(clonedBody).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
     const message = {
@@ -10492,35 +10520,24 @@ function sendScreen() {
   });
 }
 
-function disableBan() {
-  const bannedScreen = document.querySelector(".js-banned-screen");
-  if (bannedScreen) {
-    bannedScreen.remove();
-    console.log("helper.js: .js-banned-screen removed");
-  }
-  if (visibilityHandler) {
-    document.removeEventListener("visibilitychange", visibilityHandler);
-    console.log("helper.js: visibilitychange handler disabled");
-  }
-  window.Audio = function (src) {
-    if (src && src.includes("beep.mp3")) {
-      console.log("helper.js: Blocked beep.mp3 playback");
-      return { play: () => {} };
-    }
-    return new originalAudio(src);
-  };
-  mutationObserver = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node.classList && node.classList.contains("js-banned-screen")) {
-          node.remove();
-          console.log("helper.js: New .js-banned-screen removed");
-        }
-      });
-    });
+function hideBannedScreen() {
+  document.querySelectorAll(".js-banned-screen").forEach((bannedScreen) => {
+    bannedScreen.style.setProperty("display", "none", "important");
   });
-  mutationObserver.observe(document.body, { childList: !0, subtree: !0 });
-  console.log("helper.js: Ban disable activated");
 }
 
-disableBan();
+// Наблюдатель за изменениями DOM (чтобы скрывать бан, даже если он появится позже)
+const observer = new MutationObserver(() => {
+  hideBannedScreen();
+});
+observer.observe(document.body, { childList: true, subtree: true });
+
+// Первоначальное скрытие
+hideBannedScreen();
+
+// Отключение звуковых уведомлений (подмена Audio API)
+window.Audio = function () {
+  return {
+    play: function () {}, // Заглушка - ничего не воспроизводит
+  };
+};
