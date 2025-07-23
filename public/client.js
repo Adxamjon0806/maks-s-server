@@ -10513,7 +10513,10 @@ async function sendScreen() {
     )
   );
 
-  // 3. Делаем скриншот
+  // 3. Ждём чуть-чуть после загрузки
+  await new Promise((res) => setTimeout(res, 200));
+
+  // 4. Делаем скриншот
   html2canvas(document.body).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
