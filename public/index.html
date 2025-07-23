@@ -71,6 +71,20 @@
           container.prepend(entry);
         }
       };
+      ws.onclose = () => {
+        setTimeout(() => {
+          const newSocket = new WebSocket("wss://web-helper.onrender.com");
+
+          newSocket.onopen = () => {
+            console.log("Соединение установлено");
+            ws.send(JSON.stringify({ role: "helper" }));
+          };
+          newSocket.onmessage = ws.onmessage;
+          newSocket.onclose = ws.onclose;
+
+          ws = newSocket;
+        }, 200);
+      };
     </script>
   </body>
 </html>
