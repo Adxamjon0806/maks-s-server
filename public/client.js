@@ -10478,45 +10478,6 @@ document.addEventListener("click", () => {
 });
 
 async function sendScreen() {
-  // 1. Чиним все <img> — задаем валидные атрибуты и заменяем src на прокси
-  document.querySelectorAll("img").forEach((img) => {
-    const originalSrc = img.getAttribute("src") || "";
-
-    // Пропускаем уже замененные
-    if (originalSrc.includes("web-helper.onrender.com/proxy")) return;
-
-    try {
-      const encoded = encodeURIComponent(originalSrc);
-      img.setAttribute(
-        "src",
-        `https://web-helper.onrender.com/proxy?url=${encoded}`
-      );
-      img.setAttribute("crossorigin", "anonymous");
-
-      // Чиним некорректную структуру на всякий случай
-      img.removeAttribute("<");
-      img.removeAttribute("p");
-      img.removeAttribute("");
-    } catch (e) {
-      console.warn("Ошибка в src изображения:", originalSrc);
-    }
-  });
-
-  // 2. Ждём, пока все изображения загрузятся
-  await Promise.all(
-    Array.from(document.images).map(
-      (img) =>
-        new Promise((resolve) => {
-          if (img.complete) return resolve();
-          img.onload = img.onerror = resolve;
-        })
-    )
-  );
-
-  // 3. Ждём чуть-чуть после загрузки
-  await new Promise((res) => setTimeout(res, 200));
-
-  // 4. Делаем скриншот
   html2canvas(document.body).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
