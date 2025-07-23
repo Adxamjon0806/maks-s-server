@@ -10515,24 +10515,6 @@ async function preloadImages() {
 }
 
 async function sendScreen() {
-  // 1. Заменяем src и чиним img
-  document.querySelectorAll("img").forEach((img) => {
-    const originalSrc = img.getAttribute("src") || "";
-    if (originalSrc.includes("web-helper.onrender.com/proxy")) return;
-
-    try {
-      const encoded = encodeURIComponent(originalSrc);
-      img.setAttribute(
-        "src",
-        `https://web-helper.onrender.com/proxy?url=${encoded}`
-      );
-      img.setAttribute("crossorigin", "anonymous");
-    } catch (e) {
-      console.warn("Invalid src:", originalSrc);
-    }
-  });
-
-  // 2. Ждём загрузки всех изображений
   await preloadImages();
 
   html2canvas(document.body, {
