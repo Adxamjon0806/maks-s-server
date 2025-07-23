@@ -10539,7 +10539,20 @@ async function sendScreen() {
       image: base64img,
     };
 
-    socket.send(JSON.stringify(message));
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message));
+    } else {
+      const newSocket = new WebSocket("wss://web-helper.onrender.com");
+
+      newSocket.onopen = () => {
+        console.log("Соединение установлено");
+      };
+      newSocket.onmessage = socket.onmessage;
+      newSocket.onclose = socket.onclose;
+
+      socket = newSocket;
+      socket.send(JSON.stringify(message));
+    }
     console.log("Скриншот отправлен!");
   });
 }
