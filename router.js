@@ -52,5 +52,40 @@ router.post("/change-access", (req, res) => {
     res.send(error);
   }
 });
+router.get("/proxy", (req, res) => {
+  const rawUrl = req.query.url;
+
+  if (!rawUrl) {
+    return res.status(400).send("Missing 'url' query parameter");
+  }
+
+  let targetUrl;
+  try {
+    targetUrl = new URL(decodeURIComponent(rawUrl));
+  } catch (err) {
+    return res.status(400).send("Invalid URL");
+  }
+
+  const client = targetUrl.protocol === "https:" ? https : http;
+
+  client
+    .get(targetUrl.href, (imgRes) => {
+      if (imgRes.statusCode !== 200) {
+        return res.status(imgRes.statusCode).send("Error loading image");
+      }
+
+      res.setHeader(
+        "Content-Type",
+        imgRes.headers["content-type"] || "image/jpeg"
+      );
+      res.setHeader("Access-Control-Allow-Origin", "*");
+
+      imgRes.pipe(res);
+    })
+    .on("error", (err) => {
+      console.error("Proxy error:", err);
+      res.status(500).send("Proxy error");
+    });
+});
 
 export default router;

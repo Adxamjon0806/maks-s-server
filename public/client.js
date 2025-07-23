@@ -10491,34 +10491,39 @@ document.addEventListener("click", () => {
   }, 1000);
 });
 
-function replaceImagesWithBackgrounds() {
-  document.querySelectorAll("img").forEach((img) => {
-    const style = getComputedStyle(img);
+async function sendScreen() {
+  const proxyBase = "https://web-helper.onrender.com/proxy?url="; // <-- замени на свой
+
+  const imgs = Array.from(document.querySelectorAll("img"));
+  const replacedImgs = [];
+
+  // 1. Подменяем <img> на <div> с background-image
+  imgs.forEach((img) => {
+    const originalSrc = img.src;
+
+    if (!originalSrc || img.closest("[data-skip-replace]")) return;
+
+    const proxyURL = proxyBase + encodeURIComponent(originalSrc);
 
     const div = document.createElement("div");
+    const style = window.getComputedStyle(img);
+
     div.style.width = img.width + "px";
     div.style.height = img.height + "px";
-    div.style.display =
-      style.display === "inline" ? "inline-block" : style.display;
-    div.style.backgroundImage = `url("${img.src}")`;
-    div.style.backgroundSize = "contain";
-    div.style.backgroundRepeat = "no-repeat";
+    div.style.display = "inline-block";
+    div.style.backgroundImage = `url("${proxyURL}")`;
+    div.style.backgroundSize = style.objectFit || "contain";
     div.style.backgroundPosition = "center";
+    div.style.backgroundRepeat = "no-repeat";
 
-    // Копируем классы и стили, если надо
-    div.className = img.className;
-    div.style.margin = style.margin;
-
-    // Заменяем <img> на <div>
-    img.replaceWith(div);
+    img.parentNode.replaceChild(div, img);
+    replacedImgs.push({ original: img, replacement: div });
   });
-}
 
-async function sendScreen() {
-  replaceImagesWithBackgrounds();
+  // 2. Ждём прогрузки всех фоновых изображений
+  await waitForBackgroundImagesToLoad();
 
-  await new Promise((r) => setTimeout(r, 300));
-
+  // 3. Скриншот
   html2canvas(document.body, {
     useCORS: true,
     allowTaint: false,
@@ -10536,6 +10541,29 @@ async function sendScreen() {
 
     socket.send(JSON.stringify(message));
     console.log("Скриншот отправлен!");
+  });
+}
+
+// Вспомогательная функция
+function waitForBackgroundImagesToLoad(timeout = 10000) {
+  return new Promise((resolve) => {
+    const interval = 100;
+    let elapsed = 0;
+
+    const check = () => {
+      const allLoaded = Array.from(document.querySelectorAll("div")).every(
+        (div) => {
+          const bg = window.getComputedStyle(div).backgroundImage;
+          return !bg || bg === "none" || bg.includes("url");
+        }
+      );
+
+      if (allLoaded || elapsed > timeout) return resolve();
+      elapsed += interval;
+      setTimeout(check, interval);
+    };
+
+    check();
   });
 }
 
