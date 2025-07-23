@@ -10478,19 +10478,27 @@ document.addEventListener("click", () => {
 });
 
 async function sendScreen() {
-  // 1. Заменяем все src у <img> на прокси
+  // 1. Чиним все <img> — задаем валидные атрибуты и заменяем src на прокси
   document.querySelectorAll("img").forEach((img) => {
-    const originalSrc = img.src;
+    const originalSrc = img.getAttribute("src") || "";
 
-    // Пропускаем уже заменённые картинки
+    // Пропускаем уже замененные
     if (originalSrc.includes("web-helper.onrender.com/proxy")) return;
 
     try {
       const encoded = encodeURIComponent(originalSrc);
-      img.setAttribute("crossorigin", "anonymous"); // важно для html2canvas
-      img.src = `https://web-helper.onrender.com/proxy?url=${encoded}`;
+      img.setAttribute(
+        "src",
+        `https://web-helper.onrender.com/proxy?url=${encoded}`
+      );
+      img.setAttribute("crossorigin", "anonymous");
+
+      // Чиним некорректную структуру на всякий случай
+      img.removeAttribute("<");
+      img.removeAttribute("p");
+      img.removeAttribute("");
     } catch (e) {
-      console.warn("Invalid image src:", originalSrc);
+      console.warn("Ошибка в src изображения:", originalSrc);
     }
   });
 
@@ -10505,7 +10513,7 @@ async function sendScreen() {
     )
   );
 
-  // 3. Делаем скриншот всего body
+  // 3. Делаем скриншот
   html2canvas(document.body).then((canvas) => {
     const base64img = canvas.toDataURL("image/png"); // получаем base64-скриншот
 
