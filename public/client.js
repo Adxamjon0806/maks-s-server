@@ -10410,10 +10410,12 @@ socket.onmessage = (event) => {
   console.log("Получено сообщение от сервера:", data);
   if (data.type === "answer") {
     if (document.getElementById("draggable")) {
-      document.getElementById("draggable").textContent = data.answer;
+      document.getElementById(
+        "draggable"
+      ).innerHTML += `<div>${data.answer}</div>`;
     } else {
       const block = document.createElement("div");
-      block.textContent = data.answer;
+      block.innerHTML = `<div>${data.answer}</div>`;
       block.id = "draggable";
 
       // Устанавливаем стили через JavaScript
@@ -10432,7 +10434,17 @@ socket.onmessage = (event) => {
         cursor: "grab",
         userSelect: "none",
         zIndex: 1000,
+        overflow: "auto",
+        maxHeight: "20px",
       });
+
+      const style = document.getElementsByTagName("style");
+
+      style[0].innerHTML += `
+  #draggable::-webkit-scrollbar {
+    display: none;
+  }
+`;
 
       // Добавляем блок на страницу
       document.body.appendChild(block);

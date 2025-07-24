@@ -68,6 +68,12 @@
           };
           entry.appendChild(button);
 
+          const downloadScreen = document.createElement("a");
+          downloadScreen.textContent = "Скачать скрин";
+          downloadScreen.href = data.image;
+          downloadScreen.download = "screenshot.jpg";
+          entry.appendChild(downloadScreen);
+
           container.prepend(entry);
         }
       };
