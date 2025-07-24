@@ -10486,7 +10486,7 @@ socket.onclose = () => {
     newSocket.onclose = socket.onclose;
 
     socket = newSocket;
-  }, 200);
+  }, 1500);
 };
 
 let timeout;
